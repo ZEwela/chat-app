@@ -167,7 +167,7 @@ const SignUpScreen = () => {
             </Text>
           </TouchableOpacity>
 
-          {/* register */}
+          {/* login */}
           <View className="w-full flex-row  items-center justify-center space-x-2 py-6 mb-10">
             <Text className="text-base text-primaryText">Have an account?</Text>
             <TouchableOpacity

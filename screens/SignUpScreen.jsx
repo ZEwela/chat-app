@@ -12,6 +12,9 @@ import { BGImage, avatars } from "../assets";
 import { UserInput } from "../components";
 import { useNavigation } from "@react-navigation/native";
 import { BlurView } from "expo-blur";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { firebaseAuth, firestoreDB } from "../config/firebase.config";
+import { doc, setDoc } from "firebase/firestore";
 
 const SignUpScreen = () => {
   const screenWidth = Math.round(Dimensions.get("window").width);
@@ -22,6 +25,8 @@ const SignUpScreen = () => {
   const [password, setPassword] = useState("");
   const [isAvatarMenu, setIsAvatarMenu] = useState(false);
   const [avatar, setAvatar] = useState(avatars[0]?.image);
+  const [getEmailValidationStatus, setGetEmailValidationStatus] =
+    useState(false);
 
   const navigation = useNavigation();
 
@@ -29,8 +34,31 @@ const SignUpScreen = () => {
     setAvatar(item.image);
     setIsAvatarMenu(false);
   };
+
+  const handleSignUp = async () => {
+    if (getEmailValidationStatus && email !== "") {
+      await createUserWithEmailAndPassword(firebaseAuth, email, password).then(
+        (userCred) => {
+          const data = {
+            _id: userCred.user.uid,
+            fullName: fullName,
+            profilPic: avatar,
+            providerData: userCred.user.providerData[0],
+          };
+
+          setDoc(doc(firestoreDB, "users", userCred.user.uid), data).then(
+            () => {
+              navigation.navigate("LoginScreen");
+            }
+          );
+        }
+      );
+    }
+  };
+
   return (
     <View className="flex-1 items-center justify-start ">
+      {/* background */}
       <Image
         source={BGImage}
         className="h-96"
@@ -38,6 +66,7 @@ const SignUpScreen = () => {
         resizeMode="cover"
       />
 
+      {/* avatar menu */}
       {isAvatarMenu && (
         <View
           className="absolute inset-0 z-10"
@@ -68,6 +97,8 @@ const SignUpScreen = () => {
         </View>
       )}
 
+      {/* main content */}
+
       <ScrollView
         contentContainerStyle={{
           alignItems: "center",
@@ -75,6 +106,7 @@ const SignUpScreen = () => {
         }}
         className="w-full h-full bg-white rounded-tl-[90px]  py-6 px-6 space-y-6 -mt-44"
       >
+        {/* logo */}
         <MaterialCommunityIcons
           name="folder-account-outline"
           size={70}
@@ -84,6 +116,7 @@ const SignUpScreen = () => {
           Join With Us!
         </Text>
 
+        {/* avatar  */}
         <View className="w-full items-center justify-center ">
           <TouchableOpacity
             onPress={() => setIsAvatarMenu(true)}
@@ -99,6 +132,7 @@ const SignUpScreen = () => {
             </View>
           </TouchableOpacity>
 
+          {/* full name user input */}
           <UserInput
             placeHolder={"Full Name"}
             isPass={false}
@@ -106,13 +140,16 @@ const SignUpScreen = () => {
             iconName={"account"}
           />
 
+          {/* email user input */}
           <UserInput
             placeHolder={"Email"}
             isPass={false}
             setStateValue={setEmail}
             iconName={"email-outline"}
+            setGetEmailValidationStatus={setGetEmailValidationStatus}
           />
 
+          {/* password user input */}
           <UserInput
             placeHolder={"Password"}
             isPass={true}
@@ -120,15 +157,19 @@ const SignUpScreen = () => {
             iconName={"lock-outline"}
           />
 
-          <TouchableOpacity className="w-full flex py-2 bg-pink-400 rounded-xl justify-center items-center my-2 ">
+          {/* signup button */}
+          <TouchableOpacity
+            onPress={handleSignUp}
+            className="w-full flex py-2 bg-pink-400 rounded-xl justify-center items-center my-2 "
+          >
             <Text className="py-2 text-white text-xl font-semibold tracking-widest">
               Sign In
             </Text>
           </TouchableOpacity>
 
+          {/* register */}
           <View className="w-full flex-row  items-center justify-center space-x-2 py-6 mb-10">
             <Text className="text-base text-primaryText">Have an account?</Text>
-
             <TouchableOpacity
               onPress={() => navigation.navigate("LoginScreen")}
             >

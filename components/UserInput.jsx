@@ -1,6 +1,10 @@
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
-import { MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
+import {
+  MaterialCommunityIcons,
+  Entypo,
+  FontAwesome,
+} from "@expo/vector-icons";
 
 const UserInput = ({ placeHolder, isPass, setStateValue, iconName }) => {
   const [value, setValue] = useState("");

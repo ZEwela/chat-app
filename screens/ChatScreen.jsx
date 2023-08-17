@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TextInput,
+  Image,
 } from "react-native";
 import {
   Ionicons,
@@ -148,16 +149,13 @@ const ChatScreen = ({ route }) => {
                     user.providerData.email ? (
                       <>
                         <View key={msg._id} className="m-1">
-                          <View
-                            style={{ alignSelf: "flex-end" }}
-                            className="px-4 py-2 rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl bg-pink-50"
-                          >
+                          <View className=" self-end px-4 py-2 rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl bg-pink-50">
                             <Text className="text-base font-medium">
                               {msg.message}
                             </Text>
                           </View>
 
-                          <View style={{ alignSelf: "flex-end" }}>
+                          <View className="self-end">
                             {msg?.timeStamp?.seconds && (
                               <Text className="text-[12px]  font-medium">
                                 {new Date(
@@ -174,11 +172,36 @@ const ChatScreen = ({ route }) => {
                       </>
                     ) : (
                       <>
-                        {/* <View className="m-1" key={msg._id}>
-                          <View>
-                            <Text>Lalalala</Text>
+                        <View
+                          key={msg._id}
+                          className="flex  self-start  space-x-2 items-center justify-center"
+                        >
+                          <View className="flex-row items-center justify-center space-x-2">
+                            <Image
+                              source={msg?.user?.profilPic}
+                              className="w-12 h-12 "
+                              resizeMode="cover"
+                            />
+                            <View className=" px-4 py-2 rounded-tl-2xl rounded-tr-2xl rounded-br-2xl bg-blue-50">
+                              <Text className="text-base font-medium">
+                                {msg.message}
+                              </Text>
+                            </View>
                           </View>
-                        </View> */}
+                          <View className="self-start">
+                            {msg?.timeStamp?.seconds && (
+                              <Text className="text-[12px]  font-medium  pl-12 -mt-1 mb-1">
+                                {new Date(
+                                  parseInt(msg?.timeStamp?.seconds) * 1000
+                                ).toLocaleTimeString("en-US", {
+                                  hour: "numeric",
+                                  minute: "numeric",
+                                  hour12: true,
+                                })}
+                              </Text>
+                            )}
+                          </View>
+                        </View>
                       </>
                     )
                   )}
@@ -186,7 +209,7 @@ const ChatScreen = ({ route }) => {
               )}
             </ScrollView>
 
-            <View className="flex-row items-center justify-center w-full px-6 space-x-2">
+            <View className="flex-row items-center justify-center w-full px-6 space-x-2 pt-4">
               <View className="flex-row items-center justify-between bg-pink-50 rounded-2xl  space-x-4  px-4 py-2">
                 <TouchableOpacity>
                   <MaterialCommunityIcons

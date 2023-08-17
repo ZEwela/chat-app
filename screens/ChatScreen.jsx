@@ -54,6 +54,9 @@ const ChatScreen = ({ route }) => {
   const user = useSelector(selectUser);
 
   const sendAMessage = async () => {
+    if (message.length === 0 && recordUri === undefined) {
+      return;
+    }
     const timeStamp = serverTimestamp();
     let id = `${Date.now()}`;
 
@@ -70,17 +73,16 @@ const ChatScreen = ({ route }) => {
         (snapshot) => {
           // Observe state change events such as progress, pause, and resume
           // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-
-          switch (snapshot.state) {
-            case "paused":
-              console.log("Upload is paused");
-              break;
-            case "running":
-              console.log("Upload is running");
-              break;
-          }
+          //   const progress =
+          //     (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          //   switch (snapshot.state) {
+          //     case "paused":
+          //       console.log("Upload is paused");
+          //       break;
+          //     case "running":
+          //       console.log("Upload is running");
+          //       break;
+          //   }
         },
         (error) => {
           // Handle unsuccessful uploads
@@ -172,6 +174,14 @@ const ChatScreen = ({ route }) => {
     setRecording(undefined);
   };
 
+  const playRecording = async (msg) => {
+    const playbackObject = new Audio.Sound();
+    await playbackObject.loadAsync({
+      uri: msg.recordingURL,
+    });
+    await playbackObject.playAsync();
+  };
+
   return (
     <View className="flex-1">
       {/* top */}
@@ -248,7 +258,10 @@ const ChatScreen = ({ route }) => {
                         <View key={msg._id} className="m-1">
                           <View className=" self-end px-4 py-2 rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl bg-pink-50">
                             {msg?.recordingURL?.length > 0 && (
-                              <TouchableOpacity className="flex-row items-center justify-center space-x-2">
+                              <TouchableOpacity
+                                onPress={() => playRecording(msg)}
+                                className="flex-row items-center justify-center space-x-2"
+                              >
                                 <Foundation
                                   name="sound"
                                   size={24}
@@ -294,7 +307,10 @@ const ChatScreen = ({ route }) => {
                             />
                             <View className=" px-4 py-2 rounded-tl-2xl rounded-tr-2xl rounded-br-2xl bg-blue-50">
                               {msg?.recordingURL?.length > 0 && (
-                                <TouchableOpacity className="flex-row items-center justify-center space-x-2">
+                                <TouchableOpacity
+                                  onPress={() => playRecording(msg)}
+                                  className="flex-row items-center justify-center space-x-2"
+                                >
                                   <Foundation
                                     name="sound"
                                     size={24}

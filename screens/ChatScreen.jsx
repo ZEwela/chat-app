@@ -75,6 +75,7 @@ const ChatScreen = ({ route }) => {
 
     return unsubscribe;
   }, []);
+
   return (
     <View className="flex-1">
       {/* top */}

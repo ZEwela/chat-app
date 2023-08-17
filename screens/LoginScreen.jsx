@@ -4,6 +4,7 @@ import {
   Dimensions,
   Image,
   TouchableOpacity,
+  KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
 import React, { useState } from "react";
@@ -58,8 +59,9 @@ const LoginScreen = () => {
   };
 
   return (
-    <View className="flex-1 items-center justify-start">
+    <View className="flex-1 items-center justify-start ">
       {/* background */}
+
       <Image
         source={BGImage}
         className="h-96"
@@ -67,14 +69,21 @@ const LoginScreen = () => {
         resizeMode="cover"
       />
       {/* main view */}
-      <View className="w-full h-full bg-white rounded-tl-[90px] items-center justify-start py-6 px-6 space-y-6 -mt-44">
+
+      <ScrollView
+        contentContainerStyle={{
+          alignItems: "center",
+          justifyContent: "start",
+        }}
+        className="w-full h-full bg-white rounded-tl-[90px]  py-6 px-6 space-y-6 -mt-44"
+      >
         {/* logo */}
         <AntDesign name="login" size={70} color="pink" />
         <Text className="text-primaryText text-xl font-semibold">
           Welcome Back!
         </Text>
 
-        <View className="w-full items-center justify-center ">
+        <View className=" w-full items-center justify-center">
           {/* alert */}
           {alert && <Text className="text-base text-red-600">{alertMsg}</Text>}
 
@@ -97,7 +106,7 @@ const LoginScreen = () => {
           {/* login button */}
           <TouchableOpacity
             onPress={handleLogin}
-            className="w-full flex py-2 bg-pink-400 rounded-xl justify-center items-center my-2 "
+            className="w-full justify-center items-center py-2 bg-pink-400 rounded-xl my-2 "
           >
             <Text className="py-2 text-white text-xl font-semibold tracking-widest">
               Sign In
@@ -105,7 +114,7 @@ const LoginScreen = () => {
           </TouchableOpacity>
 
           {/* register */}
-          <View className="w-full flex-row  items-center justify-center space-x-2 py-5">
+          <View className="w-fullflex-row  items-center justify-center space-x-2 py-5">
             <Text className="text-base text-primaryText">
               Don't have account?
             </Text>
@@ -119,7 +128,7 @@ const LoginScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 };

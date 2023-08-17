@@ -5,6 +5,7 @@ import {
   ChatScreen,
   HomeScreen,
   LoginScreen,
+  ProfileScreen,
   SignUpScreen,
   SplashScreen,
   TestScreen,
@@ -26,6 +27,7 @@ export default function App() {
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="AddToChatScreen" component={AddToChatScreen} />
           <Stack.Screen name="ChatScreen" component={ChatScreen} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
         </Stack.Navigator>
       </Provider>
     </NavigationContainer>

@@ -11,6 +11,7 @@ import {
 } from "@expo/vector-icons";
 import { getAuth, signOut } from "firebase/auth";
 import { resetUser } from "../context/slices/userSlice";
+import { firebaseAuth } from "../config/firebase.config";
 
 const ProfileScreen = () => {
   const user = useSelector(selectUser);
@@ -18,11 +19,11 @@ const ProfileScreen = () => {
   const dispatch = useDispatch();
 
   const handleLogout = async () => {
-    const auth = getAuth();
-    signOut(auth)
+    await firebaseAuth
+      .signOut()
       .then(() => {
         dispatch(resetUser());
-        navigation.navigate("LoginScreen");
+        navigation.replace("LoginScreen");
       })
       .catch((err) => {
         alert(err);
@@ -134,7 +135,7 @@ const ProfileScreen = () => {
       <View className="flex-1 items-center justify-center ">
         <TouchableOpacity
           onPress={handleLogout}
-          className="border border-purple-500 rounded-lg p-3"
+          className="border border-purple-500 rounded-lg p-2"
         >
           <Text className="text-purple-600 font-bold text-xl">Logout</Text>
         </TouchableOpacity>

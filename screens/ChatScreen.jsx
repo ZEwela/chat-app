@@ -15,6 +15,7 @@ import {
   FontAwesome,
   MaterialCommunityIcons,
   Entypo,
+  Foundation,
 } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -29,9 +30,17 @@ import {
   serverTimestamp,
   query,
 } from "firebase/firestore";
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
 import { useSelector } from "react-redux";
 import { firestoreDB } from "../config/firebase.config";
 import { selectUser } from "../context/slices/userSlice";
+import { Audio } from "expo-av";
+import * as FileSystem from "expo-file-system";
 
 const ChatScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -39,20 +48,65 @@ const ChatScreen = ({ route }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState(null);
+  const [recording, setRecording] = useState();
+  const [recordUri, setRecordUri] = useState(undefined);
+  const [recordDownloadURL, setRecordDownloadURL] = useState("");
   const user = useSelector(selectUser);
 
   const sendAMessage = async () => {
     const timeStamp = serverTimestamp();
     let id = `${Date.now()}`;
+
+    if (recordUri !== undefined) {
+      const response = await fetch(recordUri);
+      const blob = await response.blob();
+      const storage = getStorage();
+      const storageRef = ref(storage, "recordings/record" + id);
+      const uploadTask = uploadBytesResumable(storageRef, blob);
+
+      //   listen for events
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          // Observe state change events such as progress, pause, and resume
+          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+
+          switch (snapshot.state) {
+            case "paused":
+              console.log("Upload is paused");
+              break;
+            case "running":
+              console.log("Upload is running");
+              break;
+          }
+        },
+        (error) => {
+          // Handle unsuccessful uploads
+        },
+        () => {
+          // Handle successful uploads on complete
+          // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            setRecordDownloadURL(downloadURL);
+          });
+        }
+      );
+      setRecordUri(undefined);
+    }
+
     const _doc = {
       _id: id,
       roomId: room._id,
       timeStamp: timeStamp,
       message: message,
+      recordingURL: recordDownloadURL,
       user: user,
     };
 
     setMessage("");
+    setRecordDownloadURL("");
     await addDoc(
       collection(doc(firestoreDB, "chats", room._id), "messages"),
       _doc
@@ -75,6 +129,48 @@ const ChatScreen = ({ route }) => {
 
     return unsubscribe;
   }, []);
+
+  const startRecording = async () => {
+    try {
+      await Audio.requestPermissionsAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(recording);
+    } catch (err) {
+      console.error("Failed to start recording", err);
+    }
+  };
+
+  const stopRecording = async () => {
+    await recording.stopAndUnloadAsync();
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+    });
+
+    const recordingUri = recording.getURI();
+    let fileName = `recording-${Date.now()}.caf`;
+
+    await FileSystem.makeDirectoryAsync(
+      FileSystem.documentDirectory + "recordings/",
+      { intermediates: true }
+    );
+
+    let uriPlace = FileSystem.documentDirectory + "recordings/" + `${fileName}`;
+
+    await FileSystem.moveAsync({
+      from: recordingUri,
+      to: uriPlace,
+    });
+
+    setRecordUri(uriPlace);
+    setRecording(undefined);
+  };
 
   return (
     <View className="flex-1">
@@ -151,9 +247,22 @@ const ChatScreen = ({ route }) => {
                       <>
                         <View key={msg._id} className="m-1">
                           <View className=" self-end px-4 py-2 rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl bg-pink-50">
-                            <Text className="text-base font-medium">
-                              {msg.message}
-                            </Text>
+                            {msg?.recordingURL?.length > 0 && (
+                              <TouchableOpacity className="flex-row items-center justify-center space-x-2">
+                                <Foundation
+                                  name="sound"
+                                  size={24}
+                                  color="grey"
+                                />
+
+                                <Text>Play voice message</Text>
+                              </TouchableOpacity>
+                            )}
+                            {msg?.message?.length > 0 && (
+                              <Text className="text-base font-medium">
+                                {msg.message}
+                              </Text>
+                            )}
                           </View>
 
                           <View className="self-end">
@@ -184,9 +293,22 @@ const ChatScreen = ({ route }) => {
                               resizeMode="cover"
                             />
                             <View className=" px-4 py-2 rounded-tl-2xl rounded-tr-2xl rounded-br-2xl bg-blue-50">
-                              <Text className="text-base font-medium">
-                                {msg.message}
-                              </Text>
+                              {msg?.recordingURL?.length > 0 && (
+                                <TouchableOpacity className="flex-row items-center justify-center space-x-2">
+                                  <Foundation
+                                    name="sound"
+                                    size={24}
+                                    color="grey"
+                                  />
+
+                                  <Text>Play voice message</Text>
+                                </TouchableOpacity>
+                              )}
+                              {msg?.message?.length > 0 && (
+                                <Text className="text-base font-medium">
+                                  {msg.message}
+                                </Text>
+                              )}
                             </View>
                           </View>
                           <View className="self-start">
@@ -228,8 +350,14 @@ const ChatScreen = ({ route }) => {
                   onChangeText={(text) => setMessage(text)}
                 />
 
-                <TouchableOpacity>
-                  <Entypo name="mic" size={24} color="black" />
+                <TouchableOpacity
+                  onPress={recording ? stopRecording : startRecording}
+                >
+                  <Entypo
+                    name="mic"
+                    size={24}
+                    color={recording ? "green" : "black"}
+                  />
                 </TouchableOpacity>
               </View>
 

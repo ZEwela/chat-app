@@ -44,7 +44,6 @@ const HomeScreen = () => {
     return unsubscribe;
   }, []);
 
-  console.log(user);
   return (
     <SafeAreaView className="flex-1 mt-1">
       <View className="w-full flex-row items-center justify-between px-4 py-10">

@@ -19,7 +19,8 @@ import {
   Entypo,
   Foundation,
 } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+
+import React, { useEffect, useState, useRef } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
@@ -41,6 +42,7 @@ const ChatScreen = ({ route }) => {
   const [recording, setRecording] = useState();
   const [recordUri, setRecordUri] = useState(undefined);
 
+  const flatListRef = useRef();
   const user = useSelector(selectUser);
 
   const sendAMessage = () => {
@@ -110,10 +112,24 @@ const ChatScreen = ({ route }) => {
   const chatMessages = messages?.map((item) => (
     <ChatMessage
       key={item._id + item.user.id}
-      message={item}
+      message={item.message}
+      recordingURL={item.recordingURL}
       userEmail={user.providerData.email}
+      timeStamp={item.timeStamp}
+      email={item.user.providerData.email}
+      profilePic={item.user.providerData.profilPic}
     />
   ));
+  const renderItem = ({ item }) => (
+    <ChatMessage
+      message={item.message}
+      recordingURL={item.recordingURL}
+      userEmail={user.providerData.email}
+      timeStamp={item.timeStamp}
+      email={item.user.providerData.email}
+      profilePic={item.user.providerData.profilPic}
+    />
+  );
 
   return (
     <View className="flex-1">
@@ -182,6 +198,16 @@ const ChatScreen = ({ route }) => {
                 </View>
               </>
             ) : (
+              //   <FlatList
+              //     data={messages}
+              //     onContentSizeChange={() =>
+              //       flatListRef.current.scrollToEnd({ animated: false })
+              //     }
+              //     ref={flatListRef}
+              //     initialNumToRender={40}
+              //     renderItem={renderItem}
+              //     keyExtractor={(item) => item._id}
+              //   />
               <VirtualizedList
                 data={chatMessages}
                 initialNumToRender={20}
@@ -189,6 +215,11 @@ const ChatScreen = ({ route }) => {
                 keyExtractor={(item) => item.key}
                 getItemCount={() => chatMessages.length}
                 getItem={(data, index) => data[index]}
+                ref={flatListRef}
+                onContentSizeChange={() =>
+                  flatListRef.current.scrollToEnd({ animated: false })
+                }
+                removeClippedSubviews={true}
               />
             )}
 
